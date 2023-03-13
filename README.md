@@ -1,3 +1,3 @@
 # node-chat-app
 
-- Basic Node.JS chat website using SocketIO
+- Node.JS chat website using SocketIO

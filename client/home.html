@@ -5,8 +5,19 @@
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Home</title>
+    <script src="/socket.io/socket.io.js"></script>
+    <link rel = "stylesheet" href = "client/style.css">
+    <script src="client/script.js"></script>
 </head>
 <body>
-    
+    <div id="background">
+        <button type="button" id="new-user" class="option-button" onclick="showScreen()"> New User </button>
+        <button type="button" id="existing-user" class="option-button" onclick="logInUser()"> Existing User </button>
+    </div>
+    <div id="popup-background">
+        <input type="text" id="username" value="" placeholder="Enter Username">
+        <button type="button" id="username-submit" class="option-button" onclick="genNewUser()"> Submit </button>
+    </div>
 </body>
 </html>
+

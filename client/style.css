@@ -1,0 +1,53 @@
+#background {
+    background-color: lightgreen;
+    display: grid;
+    grid-template-columns: repeat(9, 1fr);
+    grid-template-rows: repeat(9, 1fr);
+    z-index: 5;
+    position: absolute;
+    top : 0.001px;
+    left: 0.001px;
+}
+
+.option-button {
+    height: 100px;
+    width: 100px;
+    background-color:lightblue;
+    border: 2px solid black;
+    border-radius: 15px;
+    grid-row-start: 5;
+    grid-row-end : span 1;
+    display: flex;
+    text-align: center;
+    align-items: center;
+    justify-content: center;
+    z-index: 5;
+}
+
+#new-user {
+    grid-column-start: 4;
+    grid-column-end: span 1;
+}
+
+#existing-user {
+    grid-column-start: 6;
+    grid-column-end: span 1;
+}
+
+#popup-background {
+    position: absolute;
+    top : 0.001px;
+    left: 0.001px;
+    background-color: blue;
+    z-index: 1;
+    /*height: 50px;
+    width: 50px;*/
+    display: flex;
+    align-items: center;
+    justify-content: space-around;
+}
+
+#username {
+    height: 40px;
+}
+
