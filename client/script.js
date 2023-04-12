@@ -114,6 +114,9 @@ $(document).ready(function() {
 
 });
 
+
+
+
 function logout() {
     const temp1 = setLocalStorage('username', null);
     const temp2 = setLocalStorage('currTab', null);
@@ -332,9 +335,19 @@ socket.on('user_list', function(data) {
         }
 
 
+    
+
 
         var containerBox = document.getElementsByClassName('list-group')[0];
-        containerBox.innerHTML = '<button type="button" class="list-group-item list-group-item-action" disabled>Users</button>';
+        //containerBox.innerHTML = '<button type="button" class="list-group-item list-group-item-action" disabled>Users</button>';
+        containerBox.innerHTML = '<form id="autoform"></form>';
+        
+        document.getElementById('autoform').innerHTML = '<input autocomplete="off" oninput = "onInput()" list="user-options" id="open-chat-list-display" name="open-chat-list-display" placeholder="Search For a User">';
+
+        var e = document.createElement('datalist');
+        e.setAttribute('id', 'user-options');
+
+        document.getElementById('autoform').appendChild(e);
 
         var alrUsers = new Array();
 
@@ -347,19 +360,23 @@ socket.on('user_list', function(data) {
                 continue;
             }
 
-            const elem = document.createElement('button');
-            elem.classList.add('list-group-item');
-            elem.classList.add('list-group-item-action');
-            elem.setAttribute('type', 'button');
+            //const elem = document.createElement('button');
+            //elem.classList.add('list-group-item');
+            //elem.classList.add('list-group-item-action');
+            //elem.setAttribute('type', 'button');
+            //elem.innerHTML = userList.at(i)['username'];
+
+            const elem = document.createElement('option');
+            elem.setAttribute('value', userList.at(i)['username']);
             elem.innerHTML = userList.at(i)['username'];
 
-            if (true) {
-                elem.setAttribute('onclick', 'twoWayGroup(this.innerHTML)');
-            } else {
-                console.log('Placeholder');
-            }
+            //if (true) {
+            //    elem.setAttribute('onclick', 'twoWayGroup(this.innerHTML)');
+            //} else {
+            //    console.log('Placeholder');
+            //}
 
-            containerBox.appendChild(elem);
+            e.appendChild(elem);
         }
 
         $('#newChatModal').modal('toggle');
@@ -368,6 +385,19 @@ socket.on('user_list', function(data) {
     }
 
 })
+
+function onInput() {
+    console.log('HERE');
+    const enteredVal = document.getElementById('open-chat-list-display').value;
+    const options = document.getElementById('user-options').childNodes;
+
+    for(const option of options) {
+        if(option.value == enteredVal) {
+            console.log('success');
+            twoWayGroup(option.value);
+        }
+    }
+}
 
 socket.on('invalid_request', function(data) {
     socket.emit('new_session');
@@ -600,28 +630,20 @@ function writeMessage(domain, img_src, name, msg_content, time, filePath) {
         elem.classList.add('justify-content-between');
     }
     elem.classList.add('mb-4');
-    
-    const formatDate = new Intl.DateTimeFormat("en" , {
-        day: "2-digit",
-        month: "2-digit",
-        year: "numeric",
-        hour: "2-digit",
-        minute: "2-digit",
-        second: "2-digit",
-        hour12: false
-      });
+
+    elem.classList.add('animate-class');
 
     if(filePath == undefined) {
         if(name == getLocalStorage('username')) {
-            elem.innerHTML = '<li class="d-flex justify-content-between mb-4">  <div class="card mask-custom" style="min-width:325px;"> <div class="card-header d-flex justify-content-between p-3" style="border-bottom: 1px solid rgba(255,255,255,.3);"> <p class="fw-bold mb-0">{}</p> <p class="text-light small mb-0"><i class="far fa-clock"></i>{}</p> </div> <div class="card-body"> <p class="mb-0"> {} </p> </div> </div> <img src="{}" alt="avatar" class="rounded-circle d-flex align-self-end me-3 shadow-1-strong" width="60"> </li>'.format(name, new Date(time).toLocaleTimeString(), msg_content, img_src);
+            elem.innerHTML = '<li class="d-flex justify-content-between mb-4">  <div class="card mask-custom" style="min-width:325px;"> <div class="card-header d-flex justify-content-between p-3" style="border-bottom: 1px solid rgba(255,255,255,.3);"> <p class="fw-bold mb-0">{}</p> <p class="text-light small mb-0"><i class="far fa-clock"></i>{}</p> </div> <div class="card-body"> <p class="mb-0"> {} </p> </div> </div> <img src="{}" alt="avatar" class="rounded-circle d-flex align-self-end me-3 shadow-1-strong" width="60"> </li>'.format(name, formatDate(new Date(time)), msg_content, img_src);
         } else {
-            elem.innerHTML = '<li class="d-flex justify-content-between mb-4"> <img src="{}" alt="avatar" class="rounded-circle d-flex align-self-start me-3 shadow-1-strong" width="60"> <div class="card mask-custom" style="min-width:325px; background-color: hsla(218, 85%, 59%, 0.79)"> <div class="card-header d-flex justify-content-between p-3" style="border-bottom: 1px solid rgba(255,255,255,.3);"> <p class="fw-bold mb-0">{}</p> <p class="text-light small mb-0"><i class="far fa-clock"></i>{}</p> </div> <div class="card-body"> <p class="mb-0"> {} </p> </div> </div>  </li>'.format(img_src, name, new Date(time).toLocaleTimeString(), msg_content);
+            elem.innerHTML = '<li class="d-flex justify-content-between mb-4"> <img src="{}" alt="avatar" class="rounded-circle d-flex align-self-start me-3 shadow-1-strong" width="60"> <div class="card mask-custom" style="min-width:325px; background-color: hsla(218, 85%, 59%, 0.79)"> <div class="card-header d-flex justify-content-between p-3" style="border-bottom: 1px solid rgba(255,255,255,.3);"> <p class="fw-bold mb-0">{}</p> <p class="text-light small mb-0"><i class="far fa-clock"></i>{}</p> </div> <div class="card-body"> <p class="mb-0"> {} </p> </div> </div>  </li>'.format(img_src, name, formatDate(new Date(time)), msg_content);
         }
     } else {
         if(name == getLocalStorage('username')) {
-            elem.innerHTML = '<li class="d-flex justify-content-between mb-4">  <div class="card mask-custom" style="min-width:325px;"> <div class="card-header d-flex justify-content-between p-3" style="border-bottom: 1px solid rgba(255,255,255,.3);"> <p class="fw-bold mb-0">{}</p> <p class="text-light small mb-0"><i class="far fa-clock"></i>{}</p> </div> <div class="card-body"> <p class="mb-0"><a class="btn btn-primary" href="{}" role="button" target="_blank"> {} </a> </p> </div> </div> <img src="{}" alt="avatar" class="rounded-circle d-flex align-self-end me-3 shadow-1-strong" width="60"> </li>'.format(name, new Date(time).toLocaleTimeString(), filePath, msg_content, img_src);
+            elem.innerHTML = '<li class="d-flex justify-content-between mb-4">  <div class="card mask-custom" style="min-width:325px;"> <div class="card-header d-flex justify-content-between p-3" style="border-bottom: 1px solid rgba(255,255,255,.3);"> <p class="fw-bold mb-0">{}</p> <p class="text-light small mb-0"><i class="far fa-clock"></i>{}</p> </div> <div class="card-body"> <p class="mb-0"><a class="btn btn-primary" href="{}" role="button" target="_blank"> {} </a> </p> </div> </div> <img src="{}" alt="avatar" class="rounded-circle d-flex align-self-end me-3 shadow-1-strong" width="60"> </li>'.format(name, formatDate(new Date(time)), filePath, msg_content, img_src);
         } else {
-            elem.innerHTML = '<li class="d-flex justify-content-between mb-4"> <img src="{}" alt="avatar" class="rounded-circle d-flex align-self-start me-3 shadow-1-strong" width="60"> <div class="card mask-custom" style="min-width:325px; background-color: hsla(218, 85%, 59%, 0.79)"> <div class="card-header d-flex justify-content-between p-3" style="border-bottom: 1px solid rgba(255,255,255,.3);"> <p class="fw-bold mb-0">{}</p> <p class="text-light small mb-0"><i class="far fa-clock"></i>{}</p> </div> <div class="card-body"> <p class="mb-0"><a class="btn btn-primary" href="{}" role="button" target="_blank"> {} </a> </p> </div> </div>  </li>'.format(img_src, name, new Date(time).toLocaleTimeString(), filePath, msg_content);
+            elem.innerHTML = '<li class="d-flex justify-content-between mb-4"> <img src="{}" alt="avatar" class="rounded-circle d-flex align-self-start me-3 shadow-1-strong" width="60"> <div class="card mask-custom" style="min-width:325px; background-color: hsla(218, 85%, 59%, 0.79)"> <div class="card-header d-flex justify-content-between p-3" style="border-bottom: 1px solid rgba(255,255,255,.3);"> <p class="fw-bold mb-0">{}</p> <p class="text-light small mb-0"><i class="far fa-clock"></i>{}</p> </div> <div class="card-body"> <p class="mb-0"><a class="btn btn-primary" href="{}" role="button" target="_blank"> {} </a> </p> </div> </div>  </li>'.format(img_src, name, formatDate(new Date(time)), filePath, msg_content);
         }
     
     }
@@ -633,5 +655,22 @@ function writeMessage(domain, img_src, name, msg_content, time, filePath) {
     scrollDiv.scrollTop = scrollDiv.scrollHeight;
 }   
 
+function padTo2Digits(num) {
+    return num.toString().padStart(2, '0');
+}
+
+function formatDate(date) {
+    return (
+        [
+            padTo2Digits(date.getMonth() + 1),
+            padTo2Digits(date.getDate()),
+        ].join('-') + 
+        ' ' + 
+        [
+            padTo2Digits(date.getHours()),
+            padTo2Digits(date.getMinutes()),
+        ].join(':')
+    );
+}
 
 

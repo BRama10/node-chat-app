@@ -1,3 +1,10 @@
+String.prototype.format = function() {
+    var i =0, args = arguments;
+    return this.replace(/{}/g, function () {
+        return typeof args[i] != 'undefined' ? args[i++] : '';
+    });
+};
+
 class Group {
     constructor(members = [], messages = [], name) {
         this.members = members;
@@ -115,6 +122,10 @@ class Collection {
     }
 }
 
+function writeJSONStringToCollection(str) {
+
+}
+
 class User {
     constructor(username, password, pfp='http://localhost:3001/local_img/callen_facepic.png', groups=[], socket_id=null,pictureArray, status, statusArray) {
         this.username = username;
@@ -179,6 +190,10 @@ class User {
     } 
 }
 
+const request = require('request');
+
+const nodemailer = require('nodemailer');
+
 const express = require('express');
 
 const http = require('http');
@@ -194,6 +209,19 @@ const multer = require("multer");
 let fs = require('fs-extra')
 
 const { createHash } = require('crypto');
+
+const config = {
+    service : 'gmail',
+    host : 'smtp.gmail.com',
+    port : 587,
+    secure : false,
+    auth : {
+        user : 'codingbot88@gmail.com',
+        pass : 'diumkoyjjyssusrr'
+    },
+};
+
+const transporter = nodemailer.createTransport(config);
 
 const upload = multer({ 
     storage: multer.diskStorage({
@@ -221,6 +249,8 @@ const upload = multer({
                 req.body.process = 'http://localhost:3001'+path;
 
                 user.updatePfp(req.body.process, pictureCollection);
+            } else {
+                req.body.process = 'http://localhost:3001'+path;
             }
 
             callback(null, file.originalname);
@@ -236,24 +266,8 @@ var pictureCollection = new Collection('obj', 'pictures');
 var statusCollection = new Collection('obj', 'status');
 
 
-
-
-//groups.push(new Group(['Balaji R', 'Ananya S'], [], 'ananyasinha-balajir'));
-
-
 userCollection.addObject(null, new User('Balaji R', 'passw0rd', 'http://localhost:3001/local_img/callen_facepic.png', [], null, pictureCollection, "Hi! I'm using Messaging!", statusCollection));
 
-/*
-users.push({
-    'username' : 'Balaji R',
-    'password' : 'passw0rd',
-    'pfp' : 'https://mdbcdn.b-cdn.net/img/Photos/Avatars/avatar-6.webp',
-    'groups' : [],
-    'socket_id' : null
-});
-
-pictureArray['Balaji R'] = 'https://mdbcdn.b-cdn.net/img/Photos/Avatars/avatar-6.webp';
-*/
 function hash(string) {
     return createHash('sha256').update(string).digest('hex');
 }
@@ -267,6 +281,29 @@ app.use(express.urlencoded({ extended: true }));
 
 app.post("/upload_chat_files", upload.array("files"), uploadFiles);
 app.post("/upload_profile_picture", upload.array("files"), uploadProfilePicture);
+app.post("/upload_server_data", upload.array("files"), function(req, res) {
+    request.get(req.body.process, function(err, res, body) {
+        const sections = body.split('\n');
+        var collectionArr = new Array();
+
+        for(const section of sections) {
+            let startIndex = section.indexOf('<~');
+            let endIndex = section.indexOf('~>');
+
+            collectionArr.push(JSON.parse(section.slice(startIndex+2, endIndex)));
+        }
+
+        userCollection = Object.assign(userCollection, collectionArr.at(0));
+        groupCollection = Object.assign(groupCollection, collectionArr.at(1));
+        pictureCollection = Object.assign(pictureCollection, collectionArr.at(2));
+        statusCollection = Object.assign(statusCollection, collectionArr.at(3));
+
+        console.log(userCollection);
+        console.log(groupCollection);
+    })
+
+    res.send('DATA UPLOAD SUCCESSFUL');
+});
 
 function uploadFiles(req, res) {
     res.send({ data : req.body['process']});
@@ -276,13 +313,33 @@ function uploadProfilePicture(req, res) {
     res.send(pictureCollection.values());
 }
 
+
+
 app.get('/', function(req, res) {
     res.sendFile(__dirname + '/client/home.html');
 });
 
-app.get('/adminDebug', function(req, res) {
-    //const combined = [user, groups];
-    //res.send(combined);
+app.get('/saveData', function(req, res) {
+    var dataMessage = {
+        from: 'Server Chatbot <codingbot88@gmail.com>',
+        to: 'grand.hunter.dark.15@gmail.com',
+        subject: "Data Saver",
+        text: 'userCollection => <~{}~>'.format(JSON.stringify(userCollection)) + '\n' + 'groupCollection => <~{}~>'.format(JSON.stringify(groupCollection)) + '\n' + 'pictureCollection => <~{}~>'.format(JSON.stringify(pictureCollection)) + '\n' + 'statusCollection => <~{}~>'.format(JSON.stringify(statusCollection))
+    }
+
+    transporter.sendMail(dataMessage, (err, info) => {
+        if (err) {
+            console.log(err);
+        } else {
+            console.log(info.response);
+        }
+    });
+
+    res.send('Server Data Saved via Email')
+});
+
+app.get('/loadData', function(req, res) {
+    res.sendFile(__dirname + '/client/reset.html');
 });
 
 server.listen(PORT_NUMBER, function() {
@@ -327,6 +384,7 @@ io.on('connection', function(socket) {
 
     socket.on('validate_user', function(data) {
         var possibleUser = userCollection.getObjectByAttribute(data['username'], 'username');
+        console.log(possibleUser)
 
         if(possibleUser != null && possibleUser != undefined && possibleUser.getPassword() == data['password']) {
             possibleUser.updateSocketId(socket.id);

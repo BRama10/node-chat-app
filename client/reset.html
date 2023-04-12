@@ -1,0 +1,37 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>File Upload</title>
+</head>
+<body>
+    <form id='file-upload'>
+        <div class="input-group">
+            <input id='files' type="file">
+        </div>
+        <button type="button" onclick="uploadData()">Upload File</button>
+    </form>
+
+    <script>
+        function uploadData() {
+                const files = document.getElementById('files');
+
+                const formData = new FormData();
+
+                for (let i = 0; i < files.files.length; i++) {
+                    formData.append("files", files.files[i]);
+                }
+
+                fetch("http://localhost:3001/upload_server_data", {
+                    method: 'POST',
+                    body: formData
+                })
+                    .then((res) => res.text())
+                    .then((data) => alert(data))
+                    .catch((err) => ("Error occured", err));
+            }
+    </script>
+</body>
+</html>
